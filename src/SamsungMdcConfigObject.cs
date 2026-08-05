@@ -30,9 +30,6 @@ namespace PepperDashPluginSamsungMdcDisplay
         [JsonProperty("pollLedTemps")]
         public bool PollLedTemps { get; set; }
 
-        [JsonProperty("friendlyNames")]
-        public List<FriendlyName> FriendlyNames { get; set; }
-
         [JsonProperty("customInputs")]
         public List<CustomInput> CustomInputs { get; set; }
 
@@ -41,19 +38,9 @@ namespace PepperDashPluginSamsungMdcDisplay
 
         public SamsungMdcDisplayPropertiesConfig()
         {
-            FriendlyNames = new List<FriendlyName>();
             CustomInputs = new List<CustomInput>();
             ActiveInputs = new List<ActiveInputs>();
         }
-    }
-
-    public class FriendlyName
-    {
-        [JsonProperty("inputKey")]
-        public string InputKey { get; set; }
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
     }
 
     public class CustomInput

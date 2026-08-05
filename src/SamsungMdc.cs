@@ -307,22 +307,9 @@ namespace PepperDashPluginSamsungMdcDisplay
                     }
                 );
 
-                var friendlyName = _config.FriendlyNames.FirstOrDefault(n => n.InputKey == i.Key);
-
-                if (friendlyName != null)
-                {
-                    this.LogDebug(
-                        "Friendly Name found for input {0}: {1}",
-                        i.Key,
-                        friendlyName.Name
-                    );
-                }
-
-                var name = friendlyName == null ? i.Key : friendlyName.Name;
-
                 trilist
                     .StringInput[(ushort)(joinMap.InputNamesOffset.JoinNumber + count)]
-                    .StringValue = name;
+                    .StringValue = i.Key;
 
                 InputFeedback[count]
                     .LinkInputSig(
