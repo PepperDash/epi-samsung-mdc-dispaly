@@ -36,7 +36,7 @@ public static class AssemblyFixture
             AppContext.BaseDirectory,
             "..", "..", "..", "..",
             "src", "4Series", "bin", Configuration, "net8",
-            "epi-display-samsung-mdc.4Series.dll"));
+            "Pepperdash.Essentials.Plugins.Display.Samsung.MDC.dll"));
 
     private static string PluginOutputDir => Path.GetDirectoryName(PluginDllPath)!;
 
@@ -62,18 +62,23 @@ public static class AssemblyFixture
         foreach (var dll in Directory.GetFiles(runtimeDir, "*.dll"))
             dllByName.TryAdd(Path.GetFileName(dll), dll);
 
-        // Priority 3: Deterministic deps.json resolution for transitive packages
-        var depsJsonPath = Path.ChangeExtension(PluginDllPath, ".deps.json");
-        if (File.Exists(depsJsonPath))
+        // Priority 3: project.assets.json resolution for transitive packages.
+        // NOT deps.json - the plugin csproj uses <ExcludeAssets>runtime</ExcludeAssets> on the
+        // PepperDashEssentials reference (Essentials provides those DLLs on the processor at
+        // runtime), so the plugin's own deps.json omits every dependency entirely and this
+        // resolver would find nothing. project.assets.json has the full pre-exclusion
+        // dependency graph and is present after any restore/build.
+        var assetsJsonPath = Path.Combine(SourceDirectory, "obj", "project.assets.json");
+        if (File.Exists(assetsJsonPath))
         {
-            foreach (var path in ResolveDepsJsonAssemblies(depsJsonPath))
+            foreach (var path in ResolveProjectAssetsAssemblies(assetsJsonPath))
                 dllByName.TryAdd(Path.GetFileName(path), path);
         }
 
         return new MetadataLoadContext(new PathAssemblyResolver(dllByName.Values));
     }
 
-    private static IEnumerable<string> ResolveDepsJsonAssemblies(string depsJsonPath)
+    private static IEnumerable<string> ResolveProjectAssetsAssemblies(string assetsJsonPath)
     {
         // Honor NUGET_PACKAGES (common in CI / enterprise setups); fall back to the default.
         var nugetDir = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
@@ -82,29 +87,40 @@ public static class AssemblyFixture
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 ".nuget", "packages");
 
-        using var stream = File.OpenRead(depsJsonPath);
+        using var stream = File.OpenRead(assetsJsonPath);
         using var doc = JsonDocument.Parse(stream);
 
-        if (!doc.RootElement.TryGetProperty("libraries", out var libraries))
+        if (!doc.RootElement.TryGetProperty("targets", out var targets))
             yield break;
 
-        foreach (var lib in libraries.EnumerateObject())
+        // Exactly one TFM per build - take whichever key is present rather than hard-coding one.
+        var target = targets.EnumerateObject().FirstOrDefault();
+        if (target.Value.ValueKind != JsonValueKind.Object)
+            yield break;
+
+        foreach (var lib in target.Value.EnumerateObject())
         {
-            if (!lib.Value.TryGetProperty("type", out var typeProp) || typeProp.GetString() != "package")
+            // Library key is "PackageId/Version"
+            var slash = lib.Name.LastIndexOf('/');
+            if (slash < 0) continue;
+            var packageId = lib.Name[..slash].ToLowerInvariant();
+            var version = lib.Name[(slash + 1)..];
+
+            if (!lib.Value.TryGetProperty("compile", out var assets) &&
+                !lib.Value.TryGetProperty("runtime", out assets))
                 continue;
-            if (!lib.Value.TryGetProperty("path", out var pathProp))
-                continue;
 
-            var packagePath = Path.Combine(nugetDir, pathProp.GetString()!);
-            if (!Directory.Exists(packagePath)) continue;
+            foreach (var asset in assets.EnumerateObject())
+            {
+                // "_._" is NuGet's placeholder for "no asset of this kind" - skip it.
+                if (!asset.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-            var libDir = Path.Combine(packagePath, "lib", "net8.0");
-            if (!Directory.Exists(libDir))
-                libDir = Path.Combine(packagePath, "lib", "netstandard2.0");
-            if (!Directory.Exists(libDir)) continue;
-
-            foreach (var dll in Directory.GetFiles(libDir, "*.dll"))
-                yield return dll;
+                var dllPath = Path.Combine(nugetDir, packageId, version,
+                    asset.Name.Replace('/', Path.DirectorySeparatorChar));
+                if (File.Exists(dllPath))
+                    yield return dllPath;
+            }
         }
     }
 

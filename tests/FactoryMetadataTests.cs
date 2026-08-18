@@ -17,9 +17,12 @@ public class FactoryMetadataTests
     {
         var content = FactorySourceContent.Value;
 
-        var pattern = @"MinimumEssentialsFrameworkVersion\s*=\s*""3\.0\.0""";
+        // Must match the exact PepperDashEssentials version pinned in the csproj, not a bare
+        // "3.0.0" (no stable/GA 3.0.0 has shipped; semver ranks a prerelease/RC lower than the
+        // plain version, so a mismatched literal can fail the runtime compatibility gate).
+        var pattern = @"MinimumEssentialsFrameworkVersion\s*=\s*""3\.0\.0-rc\.1""";
         Regex.IsMatch(content, pattern).Should().BeTrue(
-            "Factory should set MinimumEssentialsFrameworkVersion to \"3.0.0\"");
+            "Factory should set MinimumEssentialsFrameworkVersion to \"3.0.0-rc.1\", matching the pinned PackageReference");
     }
 
     [Fact]

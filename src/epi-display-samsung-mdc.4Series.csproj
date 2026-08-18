@@ -7,6 +7,7 @@
   <PropertyGroup>
 	  <TargetFramework>net8</TargetFramework>
 	  <RootNamespace>Pepperdash.Essentials.Plugins.Display.Samsung.MDC</RootNamespace>
+	  <AssemblyName>Pepperdash.Essentials.Plugins.Display.Samsung.MDC</AssemblyName>
 	  <Deterministic>false</Deterministic>
 	  <AssemblyTitle>EPI.Samsung.MDC</AssemblyTitle>
 	  <Company>PepperDash Technologies</Company>
@@ -34,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <PackageReference Include="PepperDashEssentials" Version="3.0.0-dev-v3-routing.21">
+	  <PackageReference Include="PepperDashEssentials" Version="3.0.0-rc.1">
 		  <ExcludeAssets>runtime</ExcludeAssets>
 	  </PackageReference> 
   </ItemGroup>

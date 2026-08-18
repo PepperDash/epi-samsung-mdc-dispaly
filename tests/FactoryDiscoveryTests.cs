@@ -16,7 +16,7 @@ public class FactoryDiscoveryTests
     public void Assembly_Name_Is_EpiDisplaySamsungMdc()
     {
         var assembly = AssemblyFixture.PluginAssembly;
-        assembly.GetName().Name.Should().Be("epi-display-samsung-mdc.4Series");
+        assembly.GetName().Name.Should().Be("Pepperdash.Essentials.Plugins.Display.Samsung.MDC");
     }
 
     [Fact]

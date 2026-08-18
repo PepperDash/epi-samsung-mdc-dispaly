@@ -509,72 +509,72 @@ namespace PepperDashPluginSamsungMdcDisplay
             {
                 // General status
                 case SamsungMdcCommands.StatusControl:
-                {
-                    //UpdatePowerFB(message[2], message[5]); // "power" can be misrepresented when the display sleeps
-                    // Handle the first power on fb when waiting for it.
-                    if (_isPoweringOnIgnorePowerFb && message[6] == SamsungMdcCommands.PowerOn)
                     {
-                        _isPoweringOnIgnorePowerFb = false;
+                        //UpdatePowerFB(message[2], message[5]); // "power" can be misrepresented when the display sleeps
+                        // Handle the first power on fb when waiting for it.
+                        if (_isPoweringOnIgnorePowerFb && message[6] == SamsungMdcCommands.PowerOn)
+                        {
+                            _isPoweringOnIgnorePowerFb = false;
+                        }
+                        // Ignore general-status power off messages when powering up
+                        // if (!(_isPoweringOnIgnorePowerFb && message[6] == PowerOff))
+                        UpdatePowerFb(message[6]);
+                        UpdateVolumeFb(message[7]);
+                        UpdateMuteFb(message[8]);
+                        UpdateInputFb(message[9]);
+                        if (Debug.Level == 2)
+                        {
+                            // This check is here to prevent following string format from building unnecessarily on level 0 or 1
+                            this.LogVerbose(
+                                "StatusControl Power-'{0}d', Input-'{1}d',  Volume-'{2}d', Mute-'{3}d'",
+                                message[6],
+                                message[9],
+                                message[7],
+                                message[8]
+                            );
+                        }
+                        break;
                     }
-                    // Ignore general-status power off messages when powering up
-                    // if (!(_isPoweringOnIgnorePowerFb && message[6] == PowerOff))
-                    UpdatePowerFb(message[6]);
-                    UpdateVolumeFb(message[7]);
-                    UpdateMuteFb(message[8]);
-                    UpdateInputFb(message[9]);
-                    if (Debug.Level == 2)
-                    {
-                        // This check is here to prevent following string format from building unnecessarily on level 0 or 1
-                        this.LogVerbose(
-                            "StatusControl Power-'{0}d', Input-'{1}d',  Volume-'{2}d', Mute-'{3}d'",
-                            message[6],
-                            message[9],
-                            message[7],
-                            message[8]
-                        );
-                    }
-                    break;
-                }
                 // Power status
                 case SamsungMdcCommands.PowerControl:
-                {
-                    this.LogVerbose("PowerControl-'{0}d'", message[6]);
-                    UpdatePowerFb(message[6]);
-                    break;
-                }
+                    {
+                        this.LogVerbose("PowerControl-'{0}d'", message[6]);
+                        UpdatePowerFb(message[6]);
+                        break;
+                    }
                 // Volume level
                 case SamsungMdcCommands.VolumeControl:
-                {
-                    if (message[6] != _lastVolumeFeedbackReceived)
                     {
-                        this.LogVerbose("VolumeControl-'{0}d'", message[6]);
-                        _lastVolumeFeedbackReceived = message[6];
+                        if (message[6] != _lastVolumeFeedbackReceived)
+                        {
+                            this.LogVerbose("VolumeControl-'{0}d'", message[6]);
+                            _lastVolumeFeedbackReceived = message[6];
+                        }
+                        UpdateVolumeFb(message[6]);
+                        break;
                     }
-                    UpdateVolumeFb(message[6]);
-                    break;
-                }
                 // Volume mute status
                 case SamsungMdcCommands.MuteControl:
-                {
-                    if (message[6] != _lastMuteFeedbackReceived)
                     {
-                        this.LogVerbose("MuteControl-'{0}d'", message[6]);
-                        _lastMuteFeedbackReceived = message[6];
+                        if (message[6] != _lastMuteFeedbackReceived)
+                        {
+                            this.LogVerbose("MuteControl-'{0}d'", message[6]);
+                            _lastMuteFeedbackReceived = message[6];
+                        }
+                        UpdateMuteFb(message[6]);
+                        break;
                     }
-                    UpdateMuteFb(message[6]);
-                    break;
-                }
                 // Input status
                 case SamsungMdcCommands.InputSourceControl:
-                {
-                    if (message[6] != _lastInputFeedbackReceived)
                     {
-                        this.LogVerbose("InputSourceControl-'{0}d'", message[6]);
-                        _lastInputFeedbackReceived = message[6];
+                        if (message[6] != _lastInputFeedbackReceived)
+                        {
+                            this.LogVerbose("InputSourceControl-'{0}d'", message[6]);
+                            _lastInputFeedbackReceived = message[6];
+                        }
+                        UpdateInputFb(message[6]);
+                        break;
                     }
-                    UpdateInputFb(message[6]);
-                    break;
-                }
                 // Monitoring (Sub CMD 0x84, 2.1.D0.84 Monitoring, pdf page 228 or 244)
                 // msg[0] = Header, 0xAA
                 // msg[1] = Command, 0xFF
@@ -594,75 +594,75 @@ namespace PepperDashPluginSamsungMdcDisplay
                 // msg[n] = val-n, moduleN
                 // msg[n+1] = val-n+1, moduleN LED error data
                 case SamsungMdcCommands.LedProductFeature:
-                {
-                    this.LogVerbose(
-                        "LedProductFeature SubCmd{0} DataLen{1}",
-                        message[6],
-                        message[3]
-                    );
-
-                    if (message[6] == SamsungMdcCommands.LedSubcmdMonitoring)
                     {
                         this.LogVerbose(
-                            "LedProductFeature SubCmd{0} Temperature{1}",
+                            "LedProductFeature SubCmd{0} DataLen{1}",
                             message[6],
-                            message[9]
+                            message[3]
                         );
-                        UpdateLedTemperatureFb(message[9]);
-                    }
-                    break;
-                }
-                // Serial number control
-                case SamsungMdcCommands.SerialNumberControl:
-                {
-                    var serialNumber = new byte[18];
-                    Array.Copy(message, 6, serialNumber, 0, 18);
 
-                    UpdateSerialNumber(serialNumber);
-                    break;
-                }
-                // Software version control
-                case SamsungMdcCommands.SwVersionControl:
-                {
-                    var length = message[3];
-
-                    var firmware = new byte[length];
-
-                    Array.Copy(message, 6, firmware, 0, length);
-
-                    UpdateFirmwareVersion(firmware);
-                    break;
-                }
-                // Network info
-                case SamsungMdcCommands.SystemConfiguration:
-                {
-                    var length = message[3];
-                    if (message[4] == SamsungMdcCommands.NetworkConfiguration)
-                    {
-                        var ipAddressInfo = new byte[length - 1];
-
-                        Array.Copy(message, 7, ipAddressInfo, 0, length - 1);
-
-                        UpdateNetworkInfo(ipAddressInfo);
+                        if (message[6] == SamsungMdcCommands.LedSubcmdMonitoring)
+                        {
+                            this.LogVerbose(
+                                "LedProductFeature SubCmd{0} Temperature{1}",
+                                message[6],
+                                message[9]
+                            );
+                            UpdateLedTemperatureFb(message[9]);
+                        }
                         break;
                     }
-
-                    if (message[4] == SamsungMdcCommands.SystemConfigurationMacAddress)
+                // Serial number control
+                case SamsungMdcCommands.SerialNumberControl:
                     {
-                        var macInfo = new byte[length - 1];
+                        var serialNumber = new byte[18];
+                        Array.Copy(message, 6, serialNumber, 0, 18);
 
-                        Array.Copy(message, 6, macInfo, 0, length - 1);
-
-                        UpdateMacAddress(macInfo);
+                        UpdateSerialNumber(serialNumber);
+                        break;
                     }
+                // Software version control
+                case SamsungMdcCommands.SwVersionControl:
+                    {
+                        var length = message[3];
 
-                    break;
-                }
+                        var firmware = new byte[length];
+
+                        Array.Copy(message, 6, firmware, 0, length);
+
+                        UpdateFirmwareVersion(firmware);
+                        break;
+                    }
+                // Network info
+                case SamsungMdcCommands.SystemConfiguration:
+                    {
+                        var length = message[3];
+                        if (message[4] == SamsungMdcCommands.NetworkConfiguration)
+                        {
+                            var ipAddressInfo = new byte[length - 1];
+
+                            Array.Copy(message, 7, ipAddressInfo, 0, length - 1);
+
+                            UpdateNetworkInfo(ipAddressInfo);
+                            break;
+                        }
+
+                        if (message[4] == SamsungMdcCommands.SystemConfigurationMacAddress)
+                        {
+                            var macInfo = new byte[length - 1];
+
+                            Array.Copy(message, 6, macInfo, 0, length - 1);
+
+                            UpdateMacAddress(macInfo);
+                        }
+
+                        break;
+                    }
                 default:
-                {
-                    this.LogVerbose("Unknown message: {0}", ComTextHelper.GetEscapedText(message));
-                    break;
-                }
+                    {
+                        this.LogVerbose("Unknown message: {0}", ComTextHelper.GetEscapedText(message));
+                        break;
+                    }
             }
         }
 
@@ -1521,7 +1521,9 @@ namespace PepperDashPluginSamsungMdcDisplay
 
             try
             {
-                inputIndex = InputPorts.FindIndex(a => a.FeedbackMatchObject.Equals(b)) + 1;
+                // RoutingPortCollection<T> derives from Collection<T> (no FindIndex) in v3 -
+                // materialize to a List<T> to keep the same find-by-predicate semantics.
+                inputIndex = InputPorts.ToList().FindIndex(a => a.FeedbackMatchObject.Equals(b)) + 1;
             }
             catch (Exception e)
             {
@@ -1607,7 +1609,7 @@ namespace PepperDashPluginSamsungMdcDisplay
             {
                 // Debounce for fader movements
                 _queuedVolumeLevel = level;
-                
+
                 // Restart the debounce timer - waits 500ms after last change before sending
                 if (_volumeDebounceTimer != null)
                 {
@@ -1644,7 +1646,7 @@ namespace PepperDashPluginSamsungMdcDisplay
             {
                 scaled = (int)NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit);
             }
-            
+
             SendBytes(
                 new byte[]
                 {
@@ -1656,7 +1658,7 @@ namespace PepperDashPluginSamsungMdcDisplay
                     0x00,
                 }
             );
-            
+
             if (_isMuted)
             {
                 MuteOff();
@@ -1753,7 +1755,7 @@ namespace PepperDashPluginSamsungMdcDisplay
 
             // Always update the internal state
             _volumeLevelForSig = newVol;
-            
+
             // Only fire feedback if debounce timer is not active (i.e., not awaiting user to finish adjusting fader)
             // This prevents echo loops while still updating UI on device changes
             if (_volumeDebounceTimer == null)
