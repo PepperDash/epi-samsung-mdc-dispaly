@@ -215,25 +215,6 @@ namespace PepperDashPluginSamsungMdcDisplay
             Init();
         }
 
-        public override FeedbackCollection<Feedback> Feedbacks
-        {
-            get
-            {
-                var list = base.Feedbacks;
-                list.AddRange(
-                    new List<Feedback>
-                    {
-                        VolumeLevelFeedback,
-                        MuteFeedback,
-                        CurrentInputFeedback,
-                        CurrentLedTemperatureCelsiusFeedback,
-                        CurrentLedTemperatureFahrenheitFeedback,
-                    }
-                );
-                return list;
-            }
-        }
-
         #region IBridgeAdvanced Members
 
         /// <summary>
@@ -687,6 +668,12 @@ namespace PepperDashPluginSamsungMdcDisplay
             StatusGet();
 
             SetupInputs();
+
+            // CurrentInputFeedback is already registered by TwoWayDisplayBase's own constructor; only add the feedbacks Samsung itself owns
+            Feedbacks.Add(VolumeLevelFeedback);
+            Feedbacks.Add(MuteFeedback);
+            Feedbacks.Add(CurrentLedTemperatureCelsiusFeedback);
+            Feedbacks.Add(CurrentLedTemperatureFahrenheitFeedback);
         }
 
         private void InitCommMonitor()
