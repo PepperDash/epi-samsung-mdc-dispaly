@@ -317,3 +317,142 @@ This disables the on-screen source pop-up that causes the visible flash when the
 |       | 18  | Input 8 Name [FUTURE]        |
 |       | 19  | Input 9 Name [FUTURE]        |
 |       | 20  | Input 10 Name [FUTURE]       |
+<!-- START Minimum Essentials Framework Versions -->
+### Minimum Essentials Framework Versions
+
+- 2.4.7
+<!-- END Minimum Essentials Framework Versions -->
+<!-- START Config Example -->
+### Config Example
+
+```json
+{
+    "key": "GeneratedKey",
+    "uid": 1,
+    "name": "GeneratedName",
+    "type": "SamsungMdcDisplayProperties",
+    "group": "Group",
+    "properties": {
+        "id": "SampleString",
+        "volumeUpperLimit": 0,
+        "volumeLowerLimit": 0,
+        "pollIntervalMs": 0,
+        "coolingTimeMs": "SampleValue",
+        "warmingTimeMs": "SampleValue",
+        "showVolumeControls": true,
+        "pollLedTemps": true,
+        "friendlyNames": [
+            {
+                "inputKey": "SampleString",
+                "name": "SampleString"
+            }
+        ],
+        "customInputs": [
+            {
+                "inputCommand": "SampleString",
+                "inputConnector": "SampleString",
+                "inputIdentifier": "SampleString"
+            }
+        ],
+        "activeInputs": [
+            {
+                "key": "SampleString",
+                "name": "SampleString"
+            }
+        ]
+    }
+}
+```
+<!-- END Config Example -->
+<!-- START Supported Types -->
+
+<!-- END Supported Types -->
+<!-- START Join Maps -->
+
+<!-- END Join Maps -->
+<!-- START Interfaces Implemented -->
+### Interfaces Implemented
+
+- IKeyName
+- IBasicVolumeWithFeedback
+- ICommunicationMonitor
+- IBridgeAdvanced
+- IDeviceInfoProvider
+- IInputDisplayPort1
+- IInputDisplayPort2
+- IInputHdmi1
+- IInputHdmi2
+- IInputHdmi3
+- IInputHdmi4
+- IHasInputs<byte>
+- IRoutingSinkWithCurrentSources
+- ISelectableItems<byte>
+<!-- END Interfaces Implemented -->
+<!-- START Base Classes -->
+### Base Classes
+
+- PepperDash.Essentials.Devices.Common.Displays.TwoWayDisplayBase
+- DisplayControllerJoinMap
+- SplusObject
+<!-- END Base Classes -->
+<!-- START Public Methods -->
+### Public Methods
+
+- public void SetInput(int value)
+- public void LinkToApi(
+            BasicTriList trilist,
+            uint joinStart,
+            string joinMapKey,
+            EiscApiAdvanced bridge
+        )
+- public void StatusGet()
+- public void PowerGet()
+- public void InputHdmi1()
+- public void InputHdmi2()
+- public void InputHdmi3()
+- public void InputHdmi4()
+- public void InputDisplayPort1()
+- public void InputDisplayPort2()
+- public void InputDvi1()
+- public void InputMagicInfo()
+- public void InputGet()
+- public void InputGeneric(byte data)
+- public void SetVolume(ushort level)
+- public void VolumeDown(bool pressRelease)
+- public void VolumeUp(bool pressRelease)
+- public void VolumeGet()
+- public void MuteOff()
+- public void MuteOn()
+- public void MuteToggle()
+- public void MuteGet()
+- public void TemperatureMaxGet()
+- public void LedProductMonitorGet()
+- public void UpdateDeviceInfo()
+- public void Select()
+- public void WAITFORRESPONSE_CallbackFn( object stateInfo )
+- public void Close()
+- public int Reset()
+- public int Set()
+- public int Wait( int timeOutInMs )
+- public void Close()
+- public void ReleaseMutex()
+- public int WaitForMutex()
+- public int IsNull( object obj )
+<!-- END Public Methods -->
+<!-- START Bool Feedbacks -->
+### Bool Feedbacks
+
+- MuteFeedback
+<!-- END Bool Feedbacks -->
+<!-- START Int Feedbacks -->
+### Int Feedbacks
+
+- StatusFeedback
+- InputNumberFeedback
+- CurrentLedTemperatureCelsiusFeedback
+- CurrentLedTemperatureFahrenheitFeedback
+- VolumeLevelFeedback
+<!-- END Int Feedbacks -->
+<!-- START String Feedbacks -->
+
+<!-- END String Feedbacks -->
