@@ -471,33 +471,81 @@ namespace PepperDashPluginSamsungMdcDisplay
                     this.LogDebug("Received new bytes:{0}", ComTextHelper.GetEscapedText(newBytes));
                 }
 
-                // Get data length
-                if (newBytes.Length >= 6)
-                {
-                    // check for header
+                // Parse all complete MDC frames in the buffer and keep any trailing partial frame.
+                // This safely handles echoed outbound packets (for example 5-byte command echoes)
+                // that may be immediately followed by a valid ACK/status response.
+                var buffer = newBytes;
 
-                    // header + length + checksum
-                    var dataLength = 5 + newBytes[3];
-                    // Debug.Console(DebugLevelVerbose, this, "Got Data Length:{0} {1}", dataLength, newBytes[3]);
-                    if (newBytes.Length >= dataLength)
+                while (buffer.Length > 0)
+                {
+if (buffer[0] != SamsungMdcCommands.Header)
+{
+    // Drop noise until the next header byte.
+    var nextHeader = Array.IndexOf(buffer, SamsungMdcCommands.Header, 1);
+    buffer = nextHeader >= 0 ? buffer.Skip(nextHeader).ToArray() : Array.Empty<byte>();
+    continue;
+}
+
+                    // Need at least header/cmd/id/len/checksum structure to determine frame length.
+                    if (buffer.Length < 4)
                     {
-                        var message = new byte[dataLength];
-                        Array.Copy(newBytes, 0, message, 0, dataLength);
-                        ParseMessage(message);
-                        byte[] clear = { };
-                        _incomingBuffer = clear;
-                        return;
+                        break;
                     }
+
+var dataLength = 5 + buffer[3];
+
+
+// Response frames should have at least [ack][r-cmd] in the payload (DATA_LEN >= 0x02).
+
+if (buffer[3] < 0x02)
+
+{
+
+    buffer = buffer.Skip(1).ToArray();
+
+    continue;
+
+}
+
+
+
+                    if (buffer.Length < dataLength)
+                    {
+                        // Incomplete frame, keep it for the next receive event.
+                        break;
+                    }
+if (message.Length < 7 || message[1] != 0xFF)
+
+{
+
+    this.LogVerbose(
+
+        "Ignoring non-feedback/short MDC frame ({0} bytes): {1}",
+
+        message.Length,
+
+        ComTextHelper.GetEscapedText(message)
+
+    );
+
+    continue;
+
+}
+
+                    {
+ParseMessage(message);
+
+                            "Ignoring short MDC frame ({length} bytes): {frame}",
+                            message.Length,
+                            ComTextHelper.GetEscapedText(message)
+                        );
+                        continue;
+                    }
+
+                    ParseMessage(message);
                 }
-                if (newBytes[0] == 0xAA)
-                {
-                    _incomingBuffer = newBytes;
-                }
-                else
-                {
-                    byte[] clear = { };
-                    _incomingBuffer = clear;
-                }
+
+                _incomingBuffer = buffer;
             }
             catch (Exception ex)
             {
@@ -508,6 +556,11 @@ namespace PepperDashPluginSamsungMdcDisplay
 
         private void ParseMessage(byte[] message)
         {
+            if (message == null || message.Length < 6)
+            {
+                return;
+            }
+
             // input ack rx: {header}{command}{id}{dataLen}{ack/nak}{r-cmd}{val-1}{checksum}
             // input ack rx: { 0xAA }{ 0xFF  }{id}{ 0x03  }{'A'/'N'}{ 0x14}{input}{checksum}
             var command = message[5];
