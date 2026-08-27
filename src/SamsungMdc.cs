@@ -491,14 +491,15 @@ namespace PepperDashPluginSamsungMdcDisplay
                         break;
                     }
 
-                    var dataLength = 5 + buffer[3];
-                    if (dataLength < 5)
-                    {
-                        // Defensive guard against malformed length fields.
-                        buffer = buffer.Skip(1).ToArray();
-                        continue;
-                    }
+var dataLength = 5 + buffer[3];
 
+// Response frames should have at least [ack][r-cmd] in the payload (DATA_LEN >= 0x02).
+if (buffer[3] < 0x02)
+{
+    buffer = buffer.Skip(1).ToArray();
+    continue;
+}
+
                     if (buffer.Length < dataLength)
                     {
                         // Incomplete frame, keep it for the next receive event.
