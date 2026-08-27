@@ -478,12 +478,13 @@ namespace PepperDashPluginSamsungMdcDisplay
 
                 while (buffer.Length > 0)
                 {
-                    if (buffer[0] != SamsungMdcCommands.Header)
-                    {
-                        // Drop noise until the next header byte.
-                        buffer = buffer.Skip(1).ToArray();
-                        continue;
-                    }
+if (buffer[0] != SamsungMdcCommands.Header)
+{
+    // Drop noise until the next header byte.
+    var nextHeader = Array.IndexOf(buffer, SamsungMdcCommands.Header, 1);
+    buffer = nextHeader >= 0 ? buffer.Skip(nextHeader).ToArray() : Array.Empty<byte>();
+    continue;
+}
 
                     // Need at least header/cmd/id/len/checksum structure to determine frame length.
                     if (buffer.Length < 4)
@@ -513,17 +514,27 @@ if (buffer[3] < 0x02)
                         // Incomplete frame, keep it for the next receive event.
                         break;
                     }
-if (message.Length < 7 || message[1] != 0xFF)
-{
-    this.LogVerbose(
-        "Ignoring non-feedback/short MDC frame ({0} bytes): {1}",
-        message.Length,
-        ComTextHelper.GetEscapedText(message)
-    );
-    continue;
-}
+if (message.Length < 7 || message[1] != 0xFF)
+
+{
+
+    this.LogVerbose(
+
+        "Ignoring non-feedback/short MDC frame ({0} bytes): {1}",
+
+        message.Length,
+
+        ComTextHelper.GetEscapedText(message)
+
+    );
+
+    continue;
+
+}
+
                     {
-ParseMessage(message);
+ParseMessage(message);
+
                             "Ignoring short MDC frame ({length} bytes): {frame}",
                             message.Length,
                             ComTextHelper.GetEscapedText(message)
