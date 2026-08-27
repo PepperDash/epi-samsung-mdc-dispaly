@@ -491,31 +491,39 @@ namespace PepperDashPluginSamsungMdcDisplay
                         break;
                     }
 
-var dataLength = 5 + buffer[3];
+var dataLength = 5 + buffer[3];
 
-// Response frames should have at least [ack][r-cmd] in the payload (DATA_LEN >= 0x02).
-if (buffer[3] < 0x02)
-{
-    buffer = buffer.Skip(1).ToArray();
-    continue;
-}
-
+
+// Response frames should have at least [ack][r-cmd] in the payload (DATA_LEN >= 0x02).
+
+if (buffer[3] < 0x02)
+
+{
+
+    buffer = buffer.Skip(1).ToArray();
+
+    continue;
+
+}
+
+
+
                     if (buffer.Length < dataLength)
                     {
                         // Incomplete frame, keep it for the next receive event.
                         break;
                     }
-
-                    var message = new byte[dataLength];
-                    Array.Copy(buffer, 0, message, 0, dataLength);
-
-                    // Remove consumed frame before parse so subsequent frames are preserved
-                    // even if this frame is ignored.
-                    buffer = buffer.Skip(dataLength).ToArray();
-
-                    if (message.Length < 6)
+if (message.Length < 7 || message[1] != 0xFF)
+{
+    this.LogVerbose(
+        "Ignoring non-feedback/short MDC frame ({0} bytes): {1}",
+        message.Length,
+        ComTextHelper.GetEscapedText(message)
+    );
+    continue;
+}
                     {
-                        this.LogVerbose(
+ParseMessage(message);
                             "Ignoring short MDC frame ({length} bytes): {frame}",
                             message.Length,
                             ComTextHelper.GetEscapedText(message)
